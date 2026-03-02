@@ -10,7 +10,7 @@ export const OfflineIndicator = () => {
   return (
     <div
       className={cn(
-        "fixed top-0 left-0 right-0 z-[9998] bg-amber-500 text-white py-2 px-4",
+        "sticky top-0 left-0 right-0 z-[9999] bg-amber-500 text-white py-2 px-4",
         "flex items-center justify-center gap-2 text-sm font-medium",
         "animate-fade-in shadow-lg"
       )}

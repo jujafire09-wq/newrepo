@@ -233,7 +233,22 @@ const Bookings = () => {
                                 className="touch-manipulation"
                                 style={{ touchAction: 'manipulation' }}
                               >
-                                <BookingDownloadButton booking={{...b, bookingId: b.id}} />
+                                <BookingDownloadButton booking={{
+                                  bookingId: b.id,
+                                  guestName: b.guest_name || 'Guest',
+                                  guestEmail: b.guest_email || '',
+                                  guestPhone: b.guest_phone,
+                                  itemName: b.booking_details?.trip_name || b.booking_details?.hotel_name || b.booking_details?.place_name || b.booking_details?.item_name || 'Booking',
+                                  bookingType: b.booking_type || 'booking',
+                                  visitDate: b.visit_date || b.created_at,
+                                  totalAmount: b.total_amount || 0,
+                                  adults: b.booking_details?.adults || b.booking_details?.num_adults,
+                                  children: b.booking_details?.children || b.booking_details?.num_children,
+                                  slotsBooked: b.slots_booked,
+                                  paymentStatus: b.payment_status || 'completed',
+                                  facilities: b.booking_details?.facilities || b.booking_details?.selectedFacilities,
+                                  activities: b.booking_details?.activities || b.booking_details?.selectedActivities,
+                                }} />
                               </div>
                               
                               {b.booking_type !== 'event' && (
