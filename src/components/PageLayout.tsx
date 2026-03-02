@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { MobileBottomBar } from "@/components/MobileBottomBar";
 import { Header } from "@/components/Header";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export const PageLayout = ({ children }: PageLayoutProps) => {
 
   return (
     <div className="w-full min-h-screen flex flex-col">
+      <OfflineIndicator />
       {!shouldHideHeader && (
         <div className={shouldHideHeaderOnMobile ? "hidden md:block" : ""}>
           <Header __fromLayout />
