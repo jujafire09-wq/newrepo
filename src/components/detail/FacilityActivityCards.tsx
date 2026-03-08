@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Images, Calendar, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { ExternalBookingButton } from "./ExternalBookingDialog";
 import { FacilityAmenitiesDialog } from "./FacilityAmenitiesDialog";
 
@@ -33,6 +34,7 @@ export const FacilityImageCard = ({
   useExternalLink = false
 }: FacilityImageCardProps) => {
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
   const [showGallery, setShowGallery] = useState(false);
   const [showAmenities, setShowAmenities] = useState(false);
   
@@ -79,9 +81,9 @@ export const FacilityImageCard = ({
                 {facility.is_free || facility.price === 0 ? (
                   <span className="text-xs font-bold text-emerald-600">Free</span>
                 ) : (
-                  <span className="text-xs font-bold" style={{ color: accentColor }}>
-                    KSh {facility.price.toLocaleString()}/night
-                  </span>
+                    <span className="text-xs font-bold" style={{ color: accentColor }}>
+                      {formatPrice(facility.price)}/night
+                    </span>
                 )}
                 {facility.capacity && (
                   <span className="text-[10px] text-muted-foreground">• {facility.capacity} guests</span>
@@ -282,6 +284,7 @@ export const ActivitiesGrid = ({
 
 const ActivityImageCard = ({ activity, itemId, itemType, accentColor = "#FF7F50" }: { activity: ActivityWithImages; itemId: string; itemType: "hotel" | "adventure_place"; accentColor?: string }) => {
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
   const [showGallery, setShowGallery] = useState(false);
   const hasImages = activity.images && activity.images.length > 0;
   const mainImage = hasImages ? activity.images[0] : null;
@@ -311,7 +314,7 @@ const ActivityImageCard = ({ activity, itemId, itemType, accentColor = "#FF7F50"
                 {activity.is_free || activity.price === 0 ? (
                   <span className="text-xs font-bold text-emerald-600">Free</span>
                 ) : (
-                  <span className="text-xs font-bold" style={{ color: accentColor }}>KSh {activity.price.toLocaleString()}/person</span>
+                  <span className="text-xs font-bold" style={{ color: accentColor }}>{formatPrice(activity.price)}/person</span>
                 )}
               </div>
             </div>
