@@ -114,8 +114,8 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const convertPrice = useCallback((kesAmount: number) => {
-    if (currency === "KES") return kesAmount;
-    return Math.round((kesAmount / rate) * 100) / 100;
+    if (currency === "KES") return Math.ceil(kesAmount);
+    return Math.ceil((kesAmount / rate) * 100) / 100;
   }, [currency, rate]);
 
   const formatPrice = useCallback((kesAmount: number) => {
