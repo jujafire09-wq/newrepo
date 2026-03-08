@@ -387,7 +387,7 @@ export const DynamicItemListWithImages = ({
 
         <div className="space-y-2">
           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Photos (max {maxImages})
+            Photos (min 5, max {maxImages})
           </Label>
           <div className="flex flex-wrap gap-2">
             {newItem.tempImages?.map((file, idx) => (
