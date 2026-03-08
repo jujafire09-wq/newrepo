@@ -5,6 +5,7 @@ import { getReferralTrackingId } from "@/lib/referralUtils";
 
 interface PaystackPopupOptions {
   onSuccess?: (reference: string, bookingData: any) => void;
+  onVerifying?: () => void;
   onError?: (error: string) => void;
   onClose?: () => void;
 }
@@ -80,7 +81,7 @@ export const usePaystackPopup = (options: PaystackPopupOptions = {}) => {
         onSuccess: async (transaction: any) => {
           console.log('Payment successful:', transaction);
           setPaymentStatus('success');
-          
+          options.onVerifying?.();
           // Verify payment on backend
           try {
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke('paystack-verify', {
