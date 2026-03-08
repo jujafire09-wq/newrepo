@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ interface Booking {
 interface ItemDetails { name: string; type: string; }
 
 export default function PaymentHistory() {
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -104,7 +106,7 @@ export default function PaymentHistory() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-xs font-black text-destructive">KES {b.total_amount.toLocaleString()}</p>
+                    <p className="text-xs font-black text-destructive">{formatPrice(b.total_amount)}</p>
                     <div className="flex items-center gap-1 justify-end">
                       <CheckCircle2 className="h-2.5 w-2.5 text-green-500" />
                       <span className="text-[8px] text-green-600 font-bold">Paid</span>

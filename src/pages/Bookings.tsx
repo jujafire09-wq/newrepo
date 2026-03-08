@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -19,6 +20,7 @@ import {
 const bookingsCache = { data: null as any[] | null, timestamp: 0 };
 
 const Bookings = () => {
+  const { formatPrice } = useCurrency();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -186,7 +188,7 @@ const Bookings = () => {
                           </div>
                           
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-black text-foreground">KSh {b.total_amount.toLocaleString()}</p>
+                            <p className="text-sm font-black text-foreground">{formatPrice(b.total_amount)}</p>
                             <div className="flex justify-end mt-1 text-muted-foreground">
                               {expandedBookings[b.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </div>

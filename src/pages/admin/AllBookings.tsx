@@ -16,6 +16,7 @@ import {
   MapPin, CheckCircle2, ShieldCheck
 } from "lucide-react";
 import { BookingDownloadButton } from "@/components/booking/BookingDownloadButton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const COLORS = {
   TEAL: "#008080",
@@ -28,6 +29,7 @@ const COLORS = {
 };
 
 const AllBookings = () => {
+  const { formatPrice } = useCurrency();
   const { user } = useAuth(); 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -221,7 +223,7 @@ const AllBookings = () => {
                       {itemDetails[booking.item_id]?.name || "Loading..."}
                     </p>
                     <p className="text-md font-black text-[#008080]">
-                      KES {booking.total_amount.toLocaleString()}
+                      {formatPrice(booking.total_amount)}
                     </p>
                   </div>
                 </Card>
@@ -278,7 +280,7 @@ const AllBookings = () => {
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Payment</p>
                              <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-[#FF0000]">KES {selectedBooking.total_amount}</span>
+                                <span className="text-2xl font-black text-[#FF0000]">{formatPrice(selectedBooking.total_amount)}</span>
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Total Paid</span>
                              </div>
                         </div>

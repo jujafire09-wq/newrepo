@@ -23,6 +23,7 @@ import { compressImages } from "@/lib/imageCompression";
 import { FacilityActivityImageEditor } from "@/components/edit/FacilityActivityImageEditor";
 import { GeneralFacilitiesSelector } from "@/components/creation/GeneralFacilitiesSelector";
 import { FacilityAmenitiesInput } from "@/components/creation/FacilityAmenitiesInput";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface FacilityWithImages {
   name: string;
@@ -57,6 +58,7 @@ interface Booking {
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const EditListing = () => {
+  const { formatPrice, usdHint } = useCurrency();
   const { itemType: type, id } = useParams<{ itemType: string; id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -951,16 +953,18 @@ const EditListing = () => {
                   <div>
                     <Label className="text-xs text-slate-500">Adult (KSh)</Label>
                     <Input type="number" value={price} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)} min={0} className="h-8 border-[#008080]/30" />
+                    {price > 0 && <p className="text-[9px] text-blue-500 font-bold mt-0.5">{usdHint(price)}</p>}
                   </div>
                   <div>
                     <Label className="text-xs text-slate-500">Child (KSh)</Label>
                     <Input type="number" value={priceChild} onChange={(e) => setPriceChild(parseFloat(e.target.value) || 0)} min={0} className="h-8 border-[#008080]/30" />
+                    {priceChild > 0 && <p className="text-[9px] text-blue-500 font-bold mt-0.5">{usdHint(priceChild)}</p>}
                   </div>
                 </div>
               ) : (
                 <>
-                  <p className="font-bold text-[#FF0000]">KSh {price}</p>
-                  <p className="text-xs text-slate-500">Child: KSh {priceChild}</p>
+                  <p className="font-bold text-[#FF0000]">{formatPrice(price)}</p>
+                  <p className="text-xs text-slate-500">Child: {formatPrice(priceChild)}</p>
                 </>
               )}
             </div>
@@ -1023,6 +1027,7 @@ const EditListing = () => {
                           min={0}
                           className="h-8 border-[#008080]/30"
                         />
+                        {entranceFee > 0 && <p className="text-[9px] text-blue-500 font-bold mt-0.5">{usdHint(entranceFee)}</p>}
                       </div>
                       <div>
                         <Label className="text-xs text-slate-500">Child (KSh)</Label>
@@ -1034,14 +1039,15 @@ const EditListing = () => {
                           min={0}
                           className="h-8 border-[#008080]/30"
                         />
+                        {entranceFeeChild > 0 && <p className="text-[9px] text-blue-500 font-bold mt-0.5">{usdHint(entranceFeeChild)}</p>}
                       </div>
                     </>
                   )}
                 </div>
               ) : (
                 <>
-                  <p className="font-bold text-[#008080] capitalize">{entranceFeeType === "free" ? "Free" : `Adult: KSh ${entranceFee}`}</p>
-                  {entranceFeeType === "paid" && <p className="text-xs text-slate-500">Child: KSh {entranceFeeChild}</p>}
+                  <p className="font-bold text-[#008080] capitalize">{entranceFeeType === "free" ? "Free" : `Adult: ${formatPrice(entranceFee)}`}</p>
+                  {entranceFeeType === "paid" && <p className="text-xs text-slate-500">Child: {formatPrice(entranceFeeChild)}</p>}
                 </>
               )}
             </div>
@@ -1119,7 +1125,7 @@ const EditListing = () => {
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm">{facility.name}</span>
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                          {facility.price === 0 ? "Free" : `KSh ${facility.price}`}
+                          {facility.price === 0 ? "Free" : formatPrice(facility.price)}
                         </span>
                       </div>
                       {facility.images && facility.images.length > 0 && (
@@ -1168,7 +1174,7 @@ const EditListing = () => {
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm">{activity.name}</span>
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
-                          {activity.price === 0 ? "Free" : `KSh ${activity.price}`}
+                          {activity.price === 0 ? "Free" : formatPrice(activity.price)}
                         </span>
                       </div>
                       {activity.images && activity.images.length > 0 && (
@@ -1204,7 +1210,7 @@ const EditListing = () => {
                         {booking.payment_status}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">KSh {booking.total_amount}</p>
+                    <p className="text-xs text-muted-foreground">{formatPrice(booking.total_amount)}</p>
                   </div>
                 ))}
                 <Button 

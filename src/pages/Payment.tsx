@@ -13,8 +13,10 @@ import { WithdrawalDialog } from "@/components/referral/WithdrawalDialog";
 import { WithdrawalDetailsSection } from "@/components/payment/WithdrawalDetailsSection";
 import { SEOHead } from "@/components/SEOHead";
 import { generateReferralLink } from "@/lib/referralUtils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function Payment() {
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -184,7 +186,7 @@ export default function Payment() {
               </div>
               <div>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Available Balance</p>
-                <p className="text-2xl font-black text-destructive">KES {stats.withdrawableBalance.toLocaleString()}</p>
+                <p className="text-2xl font-black text-destructive">{formatPrice(stats.withdrawableBalance)}</p>
               </div>
             </div>
             <Button onClick={() => setShowWithdrawDialog(true)} disabled={stats.withdrawableBalance <= 0} size="sm"
@@ -254,12 +256,12 @@ export default function Payment() {
           <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Host income after deductions</p>
         </div>
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Gross Earnings" value={`KES ${stats.hostEarnings.toLocaleString()}`} />
-          <StatCard icon={<Percent className="h-4 w-4" />} label="Service Fee" value={`- KES ${stats.serviceFeeDeducted.toLocaleString()}`} />
+          <StatCard icon={<DollarSign className="h-4 w-4" />} label="Gross Earnings" value={formatPrice(stats.hostEarnings)} />
+          <StatCard icon={<Percent className="h-4 w-4" />} label="Service Fee" value={`- ${formatPrice(stats.serviceFeeDeducted)}`} />
           {stats.referralDeducted > 0 && (
-            <StatCard icon={<Award className="h-4 w-4" />} label="Referral Comm." value={`- KES ${Math.round(stats.referralDeducted).toLocaleString()}`} />
+            <StatCard icon={<Award className="h-4 w-4" />} label="Referral Comm." value={`- ${formatPrice(Math.round(stats.referralDeducted))}`} />
           )}
-          <StatCard icon={<Wallet className="h-4 w-4" />} label="Net Earnings" value={`KES ${Math.max(0, stats.hostEarnings - stats.serviceFeeDeducted).toLocaleString()}`} />
+          <StatCard icon={<Wallet className="h-4 w-4" />} label="Net Earnings" value={formatPrice(Math.max(0, stats.hostEarnings - stats.serviceFeeDeducted))} />
         </div>
 
         {/* Referral Stats */}
@@ -272,8 +274,8 @@ export default function Payment() {
             <div className="grid grid-cols-2 gap-2 mb-4">
               <StatCard icon={<Users className="h-4 w-4" />} label="People Referred" value={stats.totalReferred} />
               <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Conversions" value={stats.totalBookings} />
-              <StatCard icon={<DollarSign className="h-4 w-4" />} label="From Bookings" value={`KES ${stats.bookingEarnings.toLocaleString()}`} />
-              <StatCard icon={<Wallet className="h-4 w-4" />} label="Total Earned" value={`KES ${stats.totalCommission.toLocaleString()}`} />
+              <StatCard icon={<DollarSign className="h-4 w-4" />} label="From Bookings" value={formatPrice(stats.bookingEarnings)} />
+              <StatCard icon={<Wallet className="h-4 w-4" />} label="Total Earned" value={formatPrice(stats.totalCommission)} />
             </div>
 
             {/* Recent Commission Activity */}
@@ -298,7 +300,7 @@ export default function Payment() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-black text-emerald-600">+KES {Number(c.commission_amount).toLocaleString()}</p>
+                        <p className="text-xs font-black text-emerald-600">+{formatPrice(Number(c.commission_amount))}</p>
                         <p className="text-[8px] font-bold text-muted-foreground uppercase">
                           {c.withdrawn_at ? 'Withdrawn' : c.status === 'paid' ? 'Available' : c.status}
                         </p>
@@ -353,6 +355,6 @@ const StatCard = ({ icon, label, value }: { icon: React.ReactNode; label: string
       <div className="text-primary">{icon}</div>
       <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
     </div>
-    <p className="text-sm font-black text-foreground">{typeof value === 'string' && value.includes('KES') ? <span className="text-destructive">{value}</span> : value}</p>
+    <p className="text-sm font-black text-foreground">{value}</p>
   </div>
 );

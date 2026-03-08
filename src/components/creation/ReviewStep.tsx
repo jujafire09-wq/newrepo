@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, MapPin, Clock, DollarSign, Phone, User, Calendar, Building, Users, Image as ImageIcon, Link as LinkIcon, Sparkles, Globe2 } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface FacilityWithImages {
   name: string;
@@ -64,11 +65,12 @@ interface ReviewStepProps {
 }
 
 export const ReviewStep = ({ type, data, creatorName, creatorEmail, creatorPhone, accentColor = "#008080" }: ReviewStepProps) => {
+  const { formatPrice: currencyFormat, usdHint } = useCurrency();
   const formatPrice = (price: string | number | undefined) => {
     if (!price) return "Free";
     const num = typeof price === 'string' ? parseFloat(price) : price;
     if (num === 0) return "Free";
-    return `KES ${num.toLocaleString()}`;
+    return `${currencyFormat(num)}`;
   };
 
   const formatDays = (days?: string[]) => {
@@ -274,7 +276,7 @@ export const ReviewStep = ({ type, data, creatorName, creatorEmail, creatorPhone
                       ? "bg-emerald-500/10 text-emerald-600"
                       : "bg-amber-500/10 text-amber-600"
                   }`}>
-                    {facility.is_free || facility.price === 0 ? "Free" : `KES ${facility.price.toLocaleString()}/night`}
+                    {facility.is_free || facility.price === 0 ? "Free" : `${currencyFormat(facility.price)}/night`}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -330,7 +332,7 @@ export const ReviewStep = ({ type, data, creatorName, creatorEmail, creatorPhone
                       ? "bg-emerald-500/10 text-emerald-600"
                       : "bg-muted text-muted-foreground"
                   }`}>
-                    {activity.is_free || activity.price === 0 ? "Free" : `KES ${activity.price.toLocaleString()}/person`}
+                    {activity.is_free || activity.price === 0 ? "Free" : `${currencyFormat(activity.price)}/person`}
                   </span>
                 </div>
                 {activity.images && activity.images.length > 0 && (
