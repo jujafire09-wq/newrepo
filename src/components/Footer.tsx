@@ -166,9 +166,9 @@ const LANGUAGES = [
           </p>
         </div>
 
-        {/* Language, Currency & Mobile Section */}
+        {/* Language & Mobile Section */}
         <div className="mt-10 bg-slate-800 rounded-2xl p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* Language Selector */}
             <div className="space-y-3">
@@ -191,9 +191,6 @@ const LANGUAGES = [
                 {t('footer.moreLangSoon')}
               </p>
             </div>
-
-            {/* Currency Converter */}
-            <CurrencyConverter />
 
             {/* Mobile App Badges */}
             <div className="space-y-3">
