@@ -20,6 +20,7 @@ interface Booking {
 interface ItemDetails { name: string; type: string; }
 
 export default function PaymentHistory() {
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
