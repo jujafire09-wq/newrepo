@@ -475,6 +475,7 @@ const AdventurePlaceDetail = () => {
 
         <SimilarItems currentItemId={place.id} itemType="adventure" country={place.country} />
       </main>
+      <Footer />
     </div>
   );
 };
