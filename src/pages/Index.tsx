@@ -106,6 +106,7 @@ const CATEGORIES = [
 // ─── Main component ──────────────────────────────────────────────────────────
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [listings, setListings] = useState<any[]>([]);
   const { savedItems, handleSave } = useSavedItems();
