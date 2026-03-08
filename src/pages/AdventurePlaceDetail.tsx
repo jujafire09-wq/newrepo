@@ -33,6 +33,7 @@ const AdventurePlaceDetail = () => {
   const goBack = useSafeBack();
   const { toast } = useToast();
   const { position, requestLocation } = useGeolocation();
+  const { formatPrice } = useCurrency();
   
   const [place, setPlace] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);

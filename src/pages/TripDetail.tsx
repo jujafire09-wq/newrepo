@@ -57,6 +57,7 @@ const TripDetail = () => {
   const goBack = useSafeBack();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
   
   const [event, setEvent] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);

@@ -34,6 +34,7 @@ const HotelDetail = () => {
   const navigate = useNavigate();
   const goBack = useSafeBack();
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
   const { position, requestLocation } = useGeolocation();
   
   const [hotel, setHotel] = useState<any | null>(null);
