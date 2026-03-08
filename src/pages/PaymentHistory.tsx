@@ -106,7 +106,7 @@ export default function PaymentHistory() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-xs font-black text-destructive">KES {b.total_amount.toLocaleString()}</p>
+                    <p className="text-xs font-black text-destructive">{formatPrice(b.total_amount)}</p>
                     <div className="flex items-center gap-1 justify-end">
                       <CheckCircle2 className="h-2.5 w-2.5 text-green-500" />
                       <span className="text-[8px] text-green-600 font-bold">Paid</span>

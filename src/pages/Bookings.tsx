@@ -188,7 +188,7 @@ const Bookings = () => {
                           </div>
                           
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-black text-foreground">KSh {b.total_amount.toLocaleString()}</p>
+                            <p className="text-sm font-black text-foreground">{formatPrice(b.total_amount)}</p>
                             <div className="flex justify-end mt-1 text-muted-foreground">
                               {expandedBookings[b.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </div>
