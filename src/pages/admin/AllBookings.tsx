@@ -280,7 +280,7 @@ const AllBookings = () => {
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Payment</p>
                              <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-[#FF0000]">KES {selectedBooking.total_amount}</span>
+                                <span className="text-2xl font-black text-[#FF0000]">{formatPrice(selectedBooking.total_amount)}</span>
                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Total Paid</span>
                              </div>
                         </div>
