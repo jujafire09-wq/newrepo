@@ -1123,7 +1123,7 @@ const EditListing = () => {
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-bold text-sm">{facility.name}</span>
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                          {facility.price === 0 ? "Free" : `KSh ${facility.price}`}
+                          {facility.price === 0 ? "Free" : formatPrice(facility.price)}
                         </span>
                       </div>
                       {facility.images && facility.images.length > 0 && (
