@@ -181,6 +181,7 @@ const App = () => {
                 </div>
               </Suspense>
             </PageLayout>
+            </CurrencyProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
