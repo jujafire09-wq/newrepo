@@ -100,7 +100,7 @@ export const NavigationDrawer = ({ onClose }: NavigationDrawerProps) => {
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]">
+                    <p className="text-xs font-bold text-slate-700 truncate max-w-[140px]">
                       {userName || t('drawer.traveler')}
                     </p>
                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
