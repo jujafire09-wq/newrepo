@@ -181,7 +181,10 @@ const ListingCardComponent = ({
       <div className="flex flex-1 flex-col justify-between p-3 sm:p-4 min-w-0 gap-1.5">
         {/* Top: Category + Urgency */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider"
+            style={categoryColor ? { color: categoryColor } : undefined}
+          >
             {displayType}
           </span>
           {urgencyBadge && (
