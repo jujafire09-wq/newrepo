@@ -392,6 +392,7 @@ const Index = () => {
           place={item.place}
           availableTickets={opts.isTrip ? item.available_tickets : undefined}
           bookedTickets={opts.isTrip ? bookingStats[item.id] || 0 : undefined}
+          description={item.description}
         />
       </div>
     );
