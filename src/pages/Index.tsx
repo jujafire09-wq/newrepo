@@ -590,7 +590,7 @@ const Index = () => {
               onScroll={handleScroll('featuredTrips')}
               hasItems={displayTrips.length > 0} loading={loadingScrollable}
             >
-              {displayTrips.map((trip, i) => renderCard(trip, trip.type === "event" ? "EVENT" : "TRIP", i, { isTrip: true }))}
+              {displayTrips.map((trip, i) => renderCard(trip, trip.type === "event" ? "EVENT" : "TRIP", i, { isTrip: true, categoryColor: "hsl(25, 90%, 50%)" }))}
             </ScrollSection>
 
             {/* Events */}
