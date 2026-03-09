@@ -212,9 +212,9 @@ const Index = () => {
     setLoadingNearby(true);
     if (!position) return;
     const [placesData, hotelsData] = await Promise.all([
-      supabase.from("adventure_places").select("id,name,location,place,country,image_url,entry_fee,activities,latitude,longitude,created_at")
+      supabase.from("adventure_places").select("id,name,location,place,country,image_url,entry_fee,activities,latitude,longitude,created_at,description")
         .eq("approval_status", "approved").eq("is_hidden", false).limit(12),
-      supabase.from("hotels").select("id,name,location,place,country,image_url,activities,latitude,longitude,created_at")
+      supabase.from("hotels").select("id,name,location,place,country,image_url,activities,latitude,longitude,created_at,description")
         .eq("approval_status", "approved").eq("is_hidden", false).limit(12),
     ]);
     const combined = [
