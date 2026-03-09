@@ -243,7 +243,7 @@ export const SearchBarWithSuggestions = React.forwardRef<HTMLDivElement, SearchB
                 onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }}
                 onKeyDown={handleKeyPress}
                 onFocus={() => { setShowSuggestions(true); onFocus?.(); }}
-                className="pl-14 pr-32 h-14 md:h-16 text-sm md:text-base rounded-full border-none shadow-xl bg-white focus-visible:ring-2 focus-visible:ring-[#008080] placeholder:text-slate-400 placeholder:font-medium transition-all"
+                className="pl-14 pr-32 h-10 md:h-16 text-sm md:text-base rounded-full border-none shadow-xl bg-white focus-visible:ring-2 focus-visible:ring-[#008080] placeholder:text-slate-400 placeholder:font-medium transition-all"
               />
               <Button
                 onClick={() => { saveToHistory(value); onSubmit(); setShowSuggestions(false); }}
