@@ -68,14 +68,14 @@ const AdventurePlaceDetail = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (id) {
+    if (rawSlug) {
       Promise.all([fetchPlace(), fetchLiveRating()]);
     }
     const urlParams = new URLSearchParams(window.location.search);
     const refSlug = urlParams.get("ref");
     if (refSlug && id) trackReferralClick(refSlug, id, "adventure_place", "booking");
     requestLocation();
-  }, [id]);
+  }, [rawSlug]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 300);
@@ -117,44 +117,68 @@ const AdventurePlaceDetail = () => {
   }, [place]);
 
   const fetchPlace = async () => {
-    if (!id) return;
+    if (!rawSlug) return;
     try {
       let data: any = null;
-      const candidates = [...new Set([id, rawSlug])].filter(Boolean) as string[];
 
-      for (const candidate of candidates) {
-        if (data) break;
-        const idRes = await supabase
+      // 1. Try extracted ID as UUID
+      if (id) {
+        const { data: byId } = await supabase
           .from("adventure_places")
           .select("*")
-          .eq("id", candidate)
-          .maybeSingle() as { data: any };
-        if (idRes.data) { data = idRes.data; break; }
+          .eq("id", id)
+          .maybeSingle();
+        if (byId) data = byId;
+      }
 
-        const slugRes = await supabase
+      // 2. Try rawSlug as UUID id (in case extractIdFromSlug strips too much)
+      if (!data && rawSlug !== id) {
+        const { data: byRawId } = await supabase
           .from("adventure_places")
           .select("*")
-          .eq("slug", candidate)
-          .maybeSingle() as { data: any };
-        if (slugRes.data) { data = slugRes.data; break; }
+          .eq("id", rawSlug)
+          .maybeSingle();
+        if (byRawId) data = byRawId;
+      }
+
+      // 3. Try rawSlug as slug column
+      if (!data) {
+        const { data: bySlug } = await supabase
+          .from("adventure_places")
+          .select("*")
+          .eq("slug", rawSlug)
+          .maybeSingle();
+        if (bySlug) data = bySlug;
+      }
+
+      // 4. Try extracted id as slug column
+      if (!data && id && id !== rawSlug) {
+        const { data: byExtractedSlug } = await supabase
+          .from("adventure_places")
+          .select("*")
+          .eq("slug", id)
+          .maybeSingle();
+        if (byExtractedSlug) data = byExtractedSlug;
       }
 
       if (!data) throw new Error("Not found");
       setPlace(data);
     } catch (error) {
+      console.error("AdventurePlaceDetail fetch error:", error, { rawSlug, id });
       toast({ title: "Place not found", variant: "destructive" });
-      navigate("/");
+      // Removed navigate("/") so the error is visible and not immediately redirected
     } finally {
       setLoading(false);
     }
   };
 
   const fetchLiveRating = async () => {
-    if (!id) return;
+    if (!id && !rawSlug) return;
+    const lookupId = id || rawSlug!;
     const { data } = await supabase
       .from("reviews")
       .select("rating")
-      .eq("item_id", id)
+      .eq("item_id", lookupId)
       .eq("item_type", "adventure_place");
     if (data && data.length > 0) {
       const avg = data.reduce((acc, curr) => acc + curr.rating, 0) / data.length;
@@ -163,7 +187,13 @@ const AdventurePlaceDetail = () => {
   };
 
   if (loading) return <TealLoader />;
-  if (!place) return null;
+  if (!place) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <AlertCircle className="h-12 w-12 text-red-400" />
+      <p className="text-lg font-black uppercase text-slate-500">Place not found</p>
+      <Button onClick={() => navigate(-1)} className="rounded-full bg-teal-600 text-white border-none">Go Back</Button>
+    </div>
+  );
 
   const facilityImages = (Array.isArray(place.facilities) ? place.facilities : [])
     .flatMap((f: any) => (Array.isArray(f.images) ? f.images : []));
@@ -171,6 +201,9 @@ const AdventurePlaceDetail = () => {
     .flatMap((a: any) => (Array.isArray(a.images) ? a.images : []));
   const allImages = [place.image_url, ...(place.gallery_images || []), ...facilityImages, ...activityImages].filter(Boolean);
   const is24Hours = place.opening_hours === "00:00" && place.closing_hours === "23:59";
+
+  // Use the resolved place.id for navigation/links (not rawSlug)
+  const resolvedId = place.id;
 
   const OperatingHoursInfo = () => (
     <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-200">
@@ -203,7 +236,7 @@ const AdventurePlaceDetail = () => {
         scrolled={scrolled}
         itemName={place.name}
         isSaved={isSaved}
-        onSave={() => id && handleSaveItem(id, "adventure_place")}
+        onSave={() => handleSaveItem(resolvedId, "adventure_place")}
         onBack={goBack}
       />
 
@@ -215,7 +248,7 @@ const AdventurePlaceDetail = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Button
-              onClick={() => id && handleSaveItem(id, "adventure_place")}
+              onClick={() => handleSaveItem(resolvedId, "adventure_place")}
               className={`rounded-full w-10 h-10 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"}`}
             >
               <Heart className={`h-5 w-5 ${isSaved ? "fill-white text-white" : "text-slate-900"}`} />
@@ -263,7 +296,7 @@ const AdventurePlaceDetail = () => {
               <ArrowLeft className="h-6 w-6" />
             </Button>
             <Button
-              onClick={() => id && handleSaveItem(id, "adventure_place")}
+              onClick={() => handleSaveItem(resolvedId, "adventure_place")}
               className={`rounded-full w-12 h-12 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"}`}
             >
               <Heart className={`h-6 w-6 ${isSaved ? "fill-white text-white" : "text-slate-900"}`} />
@@ -347,13 +380,13 @@ const AdventurePlaceDetail = () => {
 
             {place.facilities?.length > 0 && (
               <div id="facilities-section">
-                <FacilitiesGrid facilities={place.facilities} itemId={place.id} itemType="adventure_place" accentColor="#008080" />
+                <FacilitiesGrid facilities={place.facilities} itemId={resolvedId} itemType="adventure_place" accentColor="#008080" />
               </div>
             )}
 
             {place.activities?.length > 0 && (
               <div id="activities-section">
-                <ActivitiesGrid activities={place.activities} itemId={place.id} itemType="adventure_place" accentColor="#FF7F50" />
+                <ActivitiesGrid activities={place.activities} itemId={resolvedId} itemType="adventure_place" accentColor="#FF7F50" />
               </div>
             )}
 
@@ -384,11 +417,40 @@ const AdventurePlaceDetail = () => {
                   <p className="text-[9px] font-black text-slate-400 uppercase">{liveRating.count} reviews</p>
                 </div>
               </div>
-              <Button onClick={() => navigate(`/booking/adventure_place/${place.id}`)} className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95">Book Now</Button>
+              <Button
+                onClick={() => navigate(`/booking/adventure_place/${resolvedId}`)}
+                className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95"
+              >
+                Book Now
+              </Button>
               <div className="grid grid-cols-3 gap-3 mt-4">
-                <UtilityButton icon={<Navigation className="h-5 w-5" />} label="Map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}, ${place.location}`)}`, "_blank")} />
-                <UtilityButton icon={<Copy className="h-5 w-5" />} label="Copy" onClick={async () => { const link = getShareLink(id!, "adventure_place", place.name, place.location); await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); }} />
-                <UtilityButton icon={<Share2 className="h-5 w-5" />} label="Share" onClick={async () => { const link = getShareLink(id!, "adventure_place", place.name, place.location); if (navigator.share) { try { await navigator.share({ title: place.name, url: link }); } catch (e) {} } else { await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); } }} />
+                <UtilityButton
+                  icon={<Navigation className="h-5 w-5" />}
+                  label="Map"
+                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}, ${place.location}`)}`, "_blank")}
+                />
+                <UtilityButton
+                  icon={<Copy className="h-5 w-5" />}
+                  label="Copy"
+                  onClick={async () => {
+                    const link = getShareLink(resolvedId, "adventure_place", place.name, place.location);
+                    await navigator.clipboard.writeText(link);
+                    toast({ title: "Link Copied!" });
+                  }}
+                />
+                <UtilityButton
+                  icon={<Share2 className="h-5 w-5" />}
+                  label="Share"
+                  onClick={async () => {
+                    const link = getShareLink(resolvedId, "adventure_place", place.name, place.location);
+                    if (navigator.share) {
+                      try { await navigator.share({ title: place.name, url: link }); } catch (e) {}
+                    } else {
+                      await navigator.clipboard.writeText(link);
+                      toast({ title: "Link Copied!" });
+                    }
+                  }}
+                />
               </div>
             </div>
 
@@ -437,12 +499,41 @@ const AdventurePlaceDetail = () => {
 
               <OperatingHoursInfo />
 
-              <Button onClick={() => navigate(`/booking/adventure_place/${place.id}`)} className="w-full py-7 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl transition-all active:scale-95">Reserve Now</Button>
+              <Button
+                onClick={() => navigate(`/booking/adventure_place/${resolvedId}`)}
+                className="w-full py-7 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl transition-all active:scale-95"
+              >
+                Reserve Now
+              </Button>
 
               <div className="grid grid-cols-3 gap-3">
-                <UtilityButton icon={<Navigation className="h-5 w-5" />} label="Map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}, ${place.location}`)}`, "_blank")} />
-                <UtilityButton icon={<Copy className="h-5 w-5" />} label="Copy" onClick={async () => { const link = getShareLink(id!, "adventure_place", place.name, place.location); await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); }} />
-                <UtilityButton icon={<Share2 className="h-5 w-5" />} label="Share" onClick={async () => { const link = getShareLink(id!, "adventure_place", place.name, place.location); if (navigator.share) { try { await navigator.share({ title: place.name, url: link }); } catch (e) {} } else { await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); } }} />
+                <UtilityButton
+                  icon={<Navigation className="h-5 w-5" />}
+                  label="Map"
+                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name}, ${place.location}`)}`, "_blank")}
+                />
+                <UtilityButton
+                  icon={<Copy className="h-5 w-5" />}
+                  label="Copy"
+                  onClick={async () => {
+                    const link = getShareLink(resolvedId, "adventure_place", place.name, place.location);
+                    await navigator.clipboard.writeText(link);
+                    toast({ title: "Link Copied!" });
+                  }}
+                />
+                <UtilityButton
+                  icon={<Share2 className="h-5 w-5" />}
+                  label="Share"
+                  onClick={async () => {
+                    const link = getShareLink(resolvedId, "adventure_place", place.name, place.location);
+                    if (navigator.share) {
+                      try { await navigator.share({ title: place.name, url: link }); } catch (e) {} 
+                    } else {
+                      await navigator.clipboard.writeText(link);
+                      toast({ title: "Link Copied!" });
+                    }
+                  }}
+                />
               </div>
 
               {(place.phone_numbers?.length > 0 || place.email) && (
@@ -467,15 +558,24 @@ const AdventurePlaceDetail = () => {
         </div>
 
         <div className="mt-12 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <ReviewSection itemId={place.id} itemType="adventure_place" />
+          <ReviewSection itemId={resolvedId} itemType="adventure_place" />
         </div>
 
         <DetailMapSection
-          currentItem={{ id: place.id, name: place.name, latitude: place.latitude, longitude: place.longitude, location: place.location, country: place.country, image_url: place.image_url, entry_fee: place.entry_fee }}
+          currentItem={{
+            id: resolvedId,
+            name: place.name,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            location: place.location,
+            country: place.country,
+            image_url: place.image_url,
+            entry_fee: place.entry_fee
+          }}
           itemType="adventure"
         />
 
-        <SimilarItems currentItemId={place.id} itemType="adventure" country={place.country} />
+        <SimilarItems currentItemId={resolvedId} itemType="adventure" country={place.country} />
       </main>
       <Footer />
     </div>
