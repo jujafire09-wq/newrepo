@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { SearchBarWithSuggestions } from "@/components/SearchBarWithSuggestions";
 import { useSearchFocus } from "@/components/PageLayout";
 import { ListingCard } from "@/components/ListingCard";
-import { Calendar, Hotel, Tent, Compass, MapPin, ChevronLeft, ChevronRight, Loader2, Navigation, Home, Heart, Ticket, Trophy } from "lucide-react";
+import { Calendar, Hotel, Tent, Compass, MapPin, ChevronLeft, ChevronRight, Loader2, Navigation, Home, Heart, Ticket, Trophy, Star } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -104,7 +104,7 @@ const CATEGORIES = [
   { icon: Home, title: "Stays", path: "/category/accommodation", color: "hsl(270, 60%, 50%)", bgClass: "bg-purple-600" },
 ];
 
-// ─── Quick navigation cards below hero ──────────────────────────────────────
+// ─── Quick navigation cards (above footer) ───────────────────────────────────
 const QUICK_NAV = [
   { icon: Calendar, title: "Trips", path: "/category/trips", color: "hsl(25, 90%, 50%)" },
   { icon: Hotel, title: "Hotels", path: "/category/hotels", color: "hsl(220, 70%, 50%)" },
@@ -319,7 +319,6 @@ const Index = () => {
       setScrollableRows({ trips: c.trips || [], hotels: c.hotels || [], attractions: c.attractions || [], campsites: c.campsites || [], events: c.events || [], accommodations: c.accommodations || [] });
       setNearbyPlacesHotels(cachedData.nearbyPlacesHotels || []);
       setLoading(false); setLoadingScrollable(false); setLoadingNearby(false);
-      // Don't re-fetch if cache is fresh (less than 5 minutes old)
       const cacheAge = Date.now() - (cachedData.cachedAt || 0);
       if (cacheAge < 5 * 60 * 1000) {
         getUserId().then(setUserId);
@@ -466,20 +465,20 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Category pills - positioned at bottom of hero, overlaying the image */}
-          <div className="absolute bottom-3 left-0 right-0 z-10 px-2 md:px-4">
-            <div className="grid grid-cols-5 gap-1.5 w-full max-w-lg mx-auto">
+          {/* Category pills - full-width grid matching Quick Nav card style */}
+          <div className="absolute bottom-3 left-0 right-0 z-10 px-4 md:px-6">
+            <div className="grid grid-cols-5 gap-2 w-full max-w-lg mx-auto">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.title}
                   onClick={() => navigate(cat.path)}
-                  className="flex flex-col items-center gap-1 py-2.5 px-0.5 rounded-2xl border border-white/20 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm min-w-0"
+                  className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl border border-white/20 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-sm"
                   style={{ backgroundColor: cat.color }}
                 >
-                  <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center">
                     <cat.icon className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-[8px] font-extrabold text-white leading-tight truncate w-full text-center px-0.5">{cat.title}</span>
+                  <span className="text-[10px] font-bold text-white leading-tight text-center">{cat.title}</span>
                 </button>
               ))}
             </div>
@@ -512,7 +511,6 @@ const Index = () => {
               {searchQuery ? t('sections.searchResults') : t('sections.allListings')}
             </h2>
             {loading ? (
-              // ── FIXED: grid layout on large screens ──
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[...Array(6)].map((_, i) => <ListingSkeleton key={i} />)}
               </div>
@@ -521,7 +519,6 @@ const Index = () => {
                 <p className="text-muted-foreground text-sm">{t('sections.noResults')}</p>
               </div>
             ) : (
-              // ── FIXED: grid layout on large screens ──
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {sortedListings.map((listing, index) => {
                   const itemDistance = position && listing.latitude && listing.longitude ? calculateDistance(position.latitude, position.longitude, listing.latitude, listing.longitude) : undefined;
@@ -554,29 +551,9 @@ const Index = () => {
 
         {/* ─── Browse sections ───────────────────────────────────────────── */}
         <div className={`w-full ${isSearchFocused ? 'hidden' : ''}`}>
-          {/* Quick Navigation Cards */}
-          <div className="container mx-auto px-4 md:px-6 pt-4 pb-2">
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {QUICK_NAV.map((nav) => (
-                <button
-                  key={nav.title}
-                  onClick={() => navigate(nav.path)}
-                  className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl bg-card border border-border hover:shadow-md transition-all active:scale-95"
-                >
-                  <div
-                    className="h-9 w-9 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${nav.color}15` }}
-                  >
-                    <nav.icon className="h-4.5 w-4.5" style={{ color: nav.color, width: 18, height: 18 }} />
-                  </div>
-                  <span className="text-[10px] font-bold text-foreground leading-tight text-center">{nav.title}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* View toggle */}
-          <div className="container mx-auto px-4 md:px-6 pt-2 pb-2 md:pt-5 md:pb-3">
+          <div className="container mx-auto px-4 md:px-6 pt-4 pb-2 md:pt-5 md:pb-3">
             <div className="flex items-center gap-1 bg-muted rounded-full p-1 w-fit">
               <button
                 onClick={() => setListingViewMode('top_destinations')}
@@ -680,6 +657,70 @@ const Index = () => {
                 </div>
               </section>
             )}
+
+            {/* ─── Become a Host CTA ─────────────────────────────────────── */}
+            <section className="mb-4 md:mb-8">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 md:p-8">
+                {/* Decorative circles */}
+                <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10 pointer-events-none" />
+                <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/5 pointer-events-none" />
+                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="h-4 w-4 text-yellow-300 fill-yellow-300" />
+                      <span className="text-primary-foreground/80 text-xs font-semibold uppercase tracking-widest">
+                        Partner with us
+                      </span>
+                    </div>
+                    <h3 className="text-primary-foreground text-xl md:text-2xl font-extrabold leading-tight mb-1">
+                      Become a Host
+                    </h3>
+                    <p className="text-primary-foreground/75 text-sm md:text-base leading-relaxed max-w-md">
+                      List your hotel, adventure spot, or tour and reach thousands of travellers. It's free to get started.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                    <button
+                      onClick={() => navigate('/become-host')}
+                      className="px-6 py-3 rounded-xl bg-white text-primary font-bold text-sm shadow-lg hover:bg-white/90 active:scale-95 transition-all whitespace-nowrap"
+                    >
+                      Get Started →
+                    </button>
+                    <button
+                      onClick={() => navigate('/become-host#learn-more')}
+                      className="px-6 py-3 rounded-xl bg-white/15 text-primary-foreground font-semibold text-sm border border-white/25 hover:bg-white/25 active:scale-95 transition-all whitespace-nowrap"
+                    >
+                      Learn More
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ─── Quick Navigation Cards (above footer) ─────────────────── */}
+            <section className="mb-4 md:mb-8">
+              <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                Quick Access
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {QUICK_NAV.map((nav) => (
+                  <button
+                    key={nav.title}
+                    onClick={() => navigate(nav.path)}
+                    className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl bg-card border border-border hover:shadow-md transition-all active:scale-95"
+                  >
+                    <div
+                      className="h-9 w-9 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${nav.color}15` }}
+                    >
+                      <nav.icon className="h-4.5 w-4.5" style={{ color: nav.color, width: 18, height: 18 }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-foreground leading-tight text-center">{nav.title}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
           </div>
         </div>
 
