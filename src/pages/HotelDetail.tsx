@@ -4,9 +4,9 @@ import { useSafeBack } from "@/hooks/useSafeBack";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  MapPin, Clock, ArrowLeft, 
-  Heart, Star, Circle, Calendar, Loader2, Share2, Copy, Navigation, Phone, Mail
+import {
+  MapPin, Clock, ArrowLeft,
+  Heart, Star, Circle, Calendar, Share2, Copy, Navigation, Phone, Mail
 } from "lucide-react";
 import { SimilarItems } from "@/components/SimilarItems";
 import { useToast } from "@/hooks/use-toast";
@@ -30,22 +30,21 @@ import { Footer } from "@/components/Footer";
 
 const HotelDetail = () => {
   const { slug } = useParams();
-  // ✅ Use slug directly as id — no extractIdFromSlug needed
+  // ✅ slug IS the id — matches EventDetail pattern exactly
   const id = slug ?? null;
   const navigate = useNavigate();
   const goBack = useSafeBack();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
   const { position, requestLocation } = useGeolocation();
-  
+
   const [hotel, setHotel] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [liveRating, setLiveRating] = useState({ avg: 0, count: 0 });
-  const [showExternalBooking, setShowExternalBooking] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const isAccommodationOnly = hotel?.establishment_type === 'accommodation_only';
+  const isAccommodationOnly = hotel?.establishment_type === "accommodation_only";
 
   const { savedItems, handleSave: handleSaveItem } = useSavedItems();
   const isSaved = savedItems.has(id || "");
@@ -58,15 +57,13 @@ const HotelDetail = () => {
     if (!hotel) return 0;
     const prices: number[] = [];
     if (hotel.price_per_night) prices.push(Number(hotel.price_per_night));
-    
     const extractPrices = (arr: any[]) => {
       if (!Array.isArray(arr)) return;
       arr.forEach((item) => {
-        const p = typeof item === 'object' ? item.price : null;
+        const p = typeof item === "object" ? item.price : null;
         if (p) prices.push(Number(p));
       });
     };
-
     extractPrices(hotel.facilities);
     extractPrices(hotel.activities);
     return prices.length > 0 ? Math.min(...prices) : 0;
@@ -75,6 +72,7 @@ const HotelDetail = () => {
   const startingPrice = getStartingPrice();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) {
       Promise.all([fetchHotel(), fetchLiveRating()]);
     }
@@ -82,8 +80,7 @@ const HotelDetail = () => {
     const refSlug = urlParams.get("ref");
     if (refSlug && id) trackReferralClick(refSlug, id, "hotel", "booking");
     requestLocation();
-    window.scrollTo(0, 0);
-  }, [id, slug]);
+  }, [id]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 300);
@@ -95,33 +92,28 @@ const HotelDetail = () => {
     if (!hotel) return;
     const checkOpenStatus = () => {
       const now = new Date();
-      const currentDay = now.toLocaleString('en-us', { weekday: 'long' }).toLowerCase();
-      
+      const currentDay = now.toLocaleString("en-us", { weekday: "long" }).toLowerCase();
       if (hotel.opening_hours === "00:00" && hotel.closing_hours === "23:59") {
-        const days = Array.isArray(hotel.days_opened) 
-          ? hotel.days_opened.map((d: string) => d.toLowerCase()) 
-          : ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        const days = Array.isArray(hotel.days_opened)
+          ? hotel.days_opened.map((d: string) => d.toLowerCase())
+          : ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
         setIsOpenNow(days.includes(currentDay));
         return;
       }
-
       const currentTime = now.getHours() * 60 + now.getMinutes();
-      
       const parseTime = (timeStr: string) => {
         if (!timeStr) return 0;
-        const [time, modifier] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
-        if (modifier === 'PM' && hours < 12) hours += 12;
-        if (modifier === 'AM' && hours === 12) hours = 0;
+        const [time, modifier] = timeStr.split(" ");
+        let [hours, minutes] = time.split(":").map(Number);
+        if (modifier === "PM" && hours < 12) hours += 12;
+        if (modifier === "AM" && hours === 12) hours = 0;
         return hours * 60 + minutes;
       };
-
       const openTime = parseTime(hotel.opening_hours || "08:00 AM");
       const closeTime = parseTime(hotel.closing_hours || "11:00 PM");
-      const days = Array.isArray(hotel.days_opened) 
-        ? hotel.days_opened.map((d: string) => d.toLowerCase()) 
-        : ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-      
+      const days = Array.isArray(hotel.days_opened)
+        ? hotel.days_opened.map((d: string) => d.toLowerCase())
+        : ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
       setIsOpenNow(days.includes(currentDay) && currentTime >= openTime && currentTime <= closeTime);
     };
     checkOpenStatus();
@@ -132,14 +124,14 @@ const HotelDetail = () => {
   const fetchHotel = async () => {
     if (!id) return;
     try {
-      // ✅ Step 1: match on id column (works for both old UUIDs and new friendly slugs)
+      // Step 1: match on id column
       let { data } = await supabase
         .from("hotels")
         .select("*")
         .eq("id", id)
         .maybeSingle() as { data: any };
 
-      // ✅ Step 2: fallback — match on slug column
+      // Step 2: fallback to slug column
       if (!data) {
         const res = await supabase
           .from("hotels")
@@ -153,13 +145,19 @@ const HotelDetail = () => {
       setHotel(data);
     } catch (error) {
       toast({ title: "Hotel not found", variant: "destructive" });
-      navigate('/');
-    } finally { setLoading(false); }
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchLiveRating = async () => {
     if (!id) return;
-    const { data } = await supabase.from("reviews").select("rating").eq("item_id", id).eq("item_type", "hotel");
+    const { data } = await supabase
+      .from("reviews")
+      .select("rating")
+      .eq("item_id", id)
+      .eq("item_type", "hotel");
     if (data && data.length > 0) {
       const avg = data.reduce((acc, curr) => acc + curr.rating, 0) / data.length;
       setLiveRating({ avg: parseFloat(avg.toFixed(1)), count: data.length });
@@ -174,7 +172,6 @@ const HotelDetail = () => {
   const activityImages = (Array.isArray(hotel.activities) ? hotel.activities : [])
     .flatMap((a: any) => (Array.isArray(a.images) ? a.images : []));
   const allImages = [hotel.image_url, ...(hotel.gallery_images || []), ...facilityImages, ...activityImages].filter(Boolean);
-
   const is24Hours = hotel.opening_hours === "00:00" && hotel.closing_hours === "23:59";
 
   const OperatingHoursInfo = () => (
@@ -194,7 +191,9 @@ const HotelDetail = () => {
           <span className="text-[10px] font-black uppercase tracking-tight">Working Days</span>
         </div>
         <p className="text-[10px] font-normal leading-tight text-slate-500 lowercase italic">
-          {Array.isArray(hotel.days_opened) ? hotel.days_opened.join(", ") : "monday, tuesday, wednesday, thursday, friday, saturday, sunday"}
+          {Array.isArray(hotel.days_opened)
+            ? hotel.days_opened.join(", ")
+            : "monday, tuesday, wednesday, thursday, friday, saturday, sunday"}
         </p>
       </div>
     </div>
@@ -210,22 +209,16 @@ const HotelDetail = () => {
         onBack={goBack}
       />
 
-      {/* HERO / IMAGE GALLERY */}
       <div className="max-w-6xl mx-auto md:px-4 md:pt-3">
-        {/* Mobile Carousel View */}
+        {/* Mobile Carousel */}
         <div className="relative w-full h-[45vh] bg-slate-900 overflow-hidden md:rounded-3xl md:hidden">
           <div className="absolute top-4 left-0 right-0 px-3 z-50 flex justify-between items-center">
-            <Button 
-              onClick={goBack}
-              className="rounded-full w-10 h-10 p-0 border-none bg-white/90 backdrop-blur-sm text-slate-900 hover:bg-white shadow-lg transition-all"
-            >
+            <Button onClick={goBack} className="rounded-full w-10 h-10 p-0 border-none bg-white/90 backdrop-blur-sm text-slate-900 hover:bg-white shadow-lg transition-all">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Button 
-              onClick={() => id && handleSaveItem(id, "hotel")} 
-              className={`rounded-full w-10 h-10 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${
-                isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"
-              }`}
+            <Button
+              onClick={() => id && handleSaveItem(id, "hotel")}
+              className={`rounded-full w-10 h-10 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"}`}
             >
               <Heart className={`h-5 w-5 ${isSaved ? "fill-white text-white" : "text-slate-900"}`} />
             </Button>
@@ -234,122 +227,87 @@ const HotelDetail = () => {
             <CarouselContent className="h-full ml-0">
               {allImages.map((img, idx) => (
                 <CarouselItem key={idx} className="h-full pl-0 basis-full">
-                  <img src={img} alt={`${hotel.name} - ${idx + 1}`} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
+                  <div className="relative h-full w-full">
+                    <img src={img} alt={`${hotel.name} - ${idx + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
           </Carousel>
-          {allImages.length > 1 && (
-            <ImageGalleryModal images={allImages} name={hotel.name} />
-          )}
+          {allImages.length > 1 && <ImageGalleryModal images={allImages} name={hotel.name} />}
           <div className="absolute bottom-6 left-0 w-full px-4 z-20">
             <div className="bg-gradient-to-r from-black/70 via-black/50 to-transparent rounded-2xl p-4 max-w-xl">
               <div className="flex flex-wrap gap-2 mb-2">
-                {isAccommodationOnly && (
-                  <Badge className="bg-purple-500 text-white border-none px-2 py-0.5 text-[9px] font-black uppercase rounded-full flex items-center gap-1 shadow-lg">
-                    Accommodation
-                  </Badge>
-                )}
-                {!isAccommodationOnly && (
+                {isAccommodationOnly ? (
+                  <Badge className="bg-purple-500 text-white border-none px-2 py-0.5 text-[9px] font-black uppercase rounded-full shadow-lg">Accommodation</Badge>
+                ) : (
                   <Badge className="bg-amber-400 text-black border-none px-2 py-0.5 text-[9px] font-black uppercase rounded-full flex items-center gap-1 shadow-lg">
-                    <Star className="h-3 w-3 fill-current" />
-                    {liveRating.avg > 0 ? liveRating.avg : "New"}
+                    <Star className="h-3 w-3 fill-current" />{liveRating.avg > 0 ? liveRating.avg : "New"}
                   </Badge>
                 )}
               </div>
               <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-none mb-2">{hotel.name}</h1>
               <div className="flex items-center gap-1 text-white">
                 <MapPin className="h-3.5 w-3.5" />
-                <span className="text-xs font-bold uppercase truncate">
-                  {[hotel.place, hotel.location, hotel.country].filter(Boolean).join(', ')}
-                </span>
+                <span className="text-xs font-bold uppercase truncate">{[hotel.place, hotel.location, hotel.country].filter(Boolean).join(", ")}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Desktop Grid View */}
+        {/* Desktop Grid */}
         <div className="hidden md:block relative">
           <div className="absolute top-6 left-6 right-6 z-50 flex justify-between items-center">
-            <Button 
-              onClick={goBack} 
-              className="rounded-full w-12 h-12 p-0 border-none bg-white/90 backdrop-blur-sm text-slate-900 hover:bg-white shadow-lg transition-all"
-            >
+            <Button onClick={goBack} className="rounded-full w-12 h-12 p-0 border-none bg-white/90 backdrop-blur-sm text-slate-900 hover:bg-white shadow-lg transition-all">
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <Button 
-              onClick={() => id && handleSaveItem(id, "hotel")} 
-              className={`rounded-full w-12 h-12 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${
-                isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"
-              }`}
+            <Button
+              onClick={() => id && handleSaveItem(id, "hotel")}
+              className={`rounded-full w-12 h-12 p-0 border-none shadow-lg backdrop-blur-sm transition-all ${isSaved ? "bg-red-500 hover:bg-red-600" : "bg-white/90 text-slate-900 hover:bg-white"}`}
             >
               <Heart className={`h-6 w-6 ${isSaved ? "fill-white text-white" : "text-slate-900"}`} />
             </Button>
           </div>
-
           <div className="grid grid-cols-4 gap-2 h-[500px]">
             {allImages.length > 0 ? (
               <>
                 <div className="col-span-2 row-span-2 rounded-3xl overflow-hidden relative group">
-                  <img 
-                    src={allImages[0]} 
-                    alt={hotel.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <img src={allImages[0]} alt={hotel.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6 z-20">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {isAccommodationOnly && (
-                          <Badge className="bg-purple-500 text-white border-none px-3 py-1 text-[10px] font-black uppercase rounded-full shadow-lg">
-                            Accommodation
-                          </Badge>
-                        )}
-                        {!isAccommodationOnly && (
-                          <Badge className="bg-amber-400 text-black border-none px-3 py-1 text-[10px] font-black uppercase rounded-full flex items-center gap-1.5 shadow-lg">
-                            <Star className="h-3.5 w-3.5 fill-current" />
-                            {liveRating.avg > 0 ? liveRating.avg : ""}
-                          </Badge>
-                        )}
-                        <Badge className={`${isOpenNow ? "bg-emerald-500" : "bg-red-500"} text-white border-none px-3 py-1 text-[10px] font-black uppercase rounded-full flex items-center gap-1.5`}>
-                          <Circle className={`h-2.5 w-2.5 fill-current ${isOpenNow ? "animate-pulse" : ""}`} />
-                          {isOpenNow ? "open now" : "closed"}
+                  <div className="absolute bottom-6 left-6 right-6 z-20 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {isAccommodationOnly ? (
+                        <Badge className="bg-purple-500 text-white border-none px-3 py-1 text-[10px] font-black uppercase rounded-full shadow-lg">Accommodation</Badge>
+                      ) : (
+                        <Badge className="bg-amber-400 text-black border-none px-3 py-1 text-[10px] font-black uppercase rounded-full flex items-center gap-1.5 shadow-lg">
+                          <Star className="h-3.5 w-3.5 fill-current" />{liveRating.avg > 0 ? liveRating.avg : "New"}
                         </Badge>
-                      </div>
-                      <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">{hotel.name}</h1>
-                      <div className="flex items-center gap-2 text-white">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm font-bold uppercase">
-                          {[hotel.place, hotel.location, hotel.country].filter(Boolean).join(', ')}
-                        </span>
-                      </div>
+                      )}
+                      <Badge className={`${isOpenNow ? "bg-emerald-500" : "bg-red-500"} text-white border-none px-3 py-1 text-[10px] font-black uppercase rounded-full flex items-center gap-1.5`}>
+                        <Circle className={`h-2.5 w-2.5 fill-current ${isOpenNow ? "animate-pulse" : ""}`} />
+                        {isOpenNow ? "open now" : "closed"}
+                      </Badge>
+                    </div>
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">{hotel.name}</h1>
+                    <div className="flex items-center gap-2 text-white">
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm font-bold uppercase">{[hotel.place, hotel.location, hotel.country].filter(Boolean).join(", ")}</span>
                     </div>
                   </div>
                 </div>
-
                 {allImages[1] && (
                   <div className="col-span-2 rounded-3xl overflow-hidden relative group">
-                    <img 
-                      src={allImages[1]} 
-                      alt={`${hotel.name} - Gallery 2`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    <img src={allImages[1]} alt={`${hotel.name} - 2`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                 )}
-
                 <div className="col-span-2 grid grid-cols-3 gap-2">
                   {allImages.slice(2, 5).map((img, idx) => (
                     <div key={idx} className="rounded-2xl overflow-hidden relative group">
-                      <img 
-                        src={img} 
-                        alt={`${hotel.name} - Gallery ${idx + 3}`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                      <img src={img} alt={`${hotel.name} - ${idx + 3}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     </div>
                   ))}
                 </div>
-
                 <ImageGalleryModal images={allImages} name={hotel.name} />
               </>
             ) : (
@@ -361,20 +319,17 @@ const HotelDetail = () => {
         </div>
       </div>
 
-      {/* Quick Navigation - Mobile Only */}
       <div className="md:hidden container px-4 mt-4 max-w-6xl mx-auto">
-        <QuickNavigationBar 
-          hasFacilities={hotel.facilities?.length > 0} 
+        <QuickNavigationBar
+          hasFacilities={hotel.facilities?.length > 0}
           hasActivities={hotel.activities?.length > 0}
           hasContact={hotel.phone_numbers?.length > 0 || !!hotel.email}
         />
       </div>
 
-      {/* MAIN BODY */}
       <main className="container px-4 mt-6 relative z-30 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[1.8fr,1fr] gap-4">
           <div className="space-y-4">
-            {/* Description */}
             <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
               <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 text-slate-900">About this property</h2>
               {hotel.description ? (
@@ -384,131 +339,71 @@ const HotelDetail = () => {
               )}
             </section>
 
-            {/* Operating Hours - Mobile Only */}
-            <div className="md:hidden">
-              <OperatingHoursInfo />
-            </div>
+            <div className="md:hidden"><OperatingHoursInfo /></div>
 
-            {/* General Facilities with Icons */}
             <GeneralFacilitiesDisplay facilityIds={hotel.amenities || []} />
 
-            {/* Facilities & Pricing with Images */}
             {hotel.facilities?.length > 0 && (
               <div id="facilities-section">
-                <FacilitiesGrid 
-                  facilities={hotel.facilities} 
-                  itemId={hotel.id} 
-                  itemType="hotel"
-                  accentColor="#008080"
-                  useExternalLink={isAccommodationOnly}
-                />
+                <FacilitiesGrid facilities={hotel.facilities} itemId={hotel.id} itemType="hotel" accentColor="#008080" useExternalLink={isAccommodationOnly} />
               </div>
             )}
 
-            {/* Activities with Images */}
             {hotel.activities?.length > 0 && (
               <div id="activities-section">
-                <ActivitiesGrid 
-                  activities={hotel.activities} 
-                  itemId={hotel.id} 
-                  itemType="hotel"
-                  accentColor="#FF7F50"
-                />
+                <ActivitiesGrid activities={hotel.activities} itemId={hotel.id} itemType="hotel" accentColor="#FF7F50" />
               </div>
             )}
 
-            {/* Mobile Booking Card */}
+            {/* Mobile booking card */}
             <div className="bg-white rounded-[32px] p-6 shadow-xl border border-slate-100 lg:hidden">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Starting From/Fee</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Starting From / Fee</p>
                   {startingPrice > 0 ? (
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-destructive">{formatPrice(startingPrice)}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">/ adult</span>
-                      </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-destructive">{formatPrice(startingPrice)}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">/ adult</span>
                     </div>
                   ) : (
                     <span className="text-lg font-bold text-emerald-600">Free Entry</span>
                   )}
                 </div>
-                <div className="text-right">
-                  {!isAccommodationOnly && (
-                    <>
-                      <div className="flex items-center gap-1 text-amber-500 font-black text-lg">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span>{liveRating.avg || "0"}</span>
-                      </div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase">{liveRating.count} reviews</p>
-                    </>
-                  )}
-                </div>
+                {!isAccommodationOnly && (
+                  <div className="text-right">
+                    <div className="flex items-center gap-1 text-amber-500 font-black text-lg">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span>{liveRating.avg || "0"}</span>
+                    </div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">{liveRating.count} reviews</p>
+                  </div>
+                )}
               </div>
               {isAccommodationOnly && hotel.general_booking_link ? (
-                <ExternalBookingButton
-                  url={hotel.general_booking_link}
-                  className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95"
-                >
-                  Reserve Now
-                </ExternalBookingButton>
+                <ExternalBookingButton url={hotel.general_booking_link} className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95">Reserve Now</ExternalBookingButton>
               ) : (
-                <Button 
-                  onClick={() => navigate(`/booking/hotel/${hotel.id}`)}
-                  className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95"
-                >
-                  Book Now
-                </Button>
+                <Button onClick={() => navigate(`/booking/hotel/${hotel.id}`)} className="w-full py-7 rounded-2xl text-md font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-lg transition-all active:scale-95">Book Now</Button>
               )}
               <div className="grid grid-cols-3 gap-3 mt-4">
-                <UtilityButton 
-                  icon={<Navigation className="h-5 w-5" />} 
-                  label="Map" 
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.location}`)}`, "_blank")} 
-                />
-                <UtilityButton 
-                  icon={<Copy className="h-5 w-5" />} 
-                  label="Copy" 
-                  onClick={async () => {
-                    const link = getShareLink(id!, "hotel", hotel.name, hotel.location);
-                    await navigator.clipboard.writeText(link);
-                    toast({ title: "Link Copied!" });
-                  }} 
-                />
-                <UtilityButton 
-                  icon={<Share2 className="h-5 w-5" />} 
-                  label="Share" 
-                  onClick={async () => {
-                    const link = getShareLink(id!, "hotel", hotel.name, hotel.location);
-                    if (navigator.share) {
-                      try { await navigator.share({ title: hotel.name, url: link }); } catch (e) {}
-                    } else {
-                      await navigator.clipboard.writeText(link);
-                      toast({ title: "Link Copied!" });
-                    }
-                  }} 
-                />
+                <UtilityButton icon={<Navigation className="h-5 w-5" />} label="Map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.location}`)}`, "_blank")} />
+                <UtilityButton icon={<Copy className="h-5 w-5" />} label="Copy" onClick={async () => { const link = getShareLink(id!, "hotel", hotel.name, hotel.location); await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); }} />
+                <UtilityButton icon={<Share2 className="h-5 w-5" />} label="Share" onClick={async () => { const link = getShareLink(id!, "hotel", hotel.name, hotel.location); if (navigator.share) { try { await navigator.share({ title: hotel.name, url: link }); } catch (e) {} } else { await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); } }} />
               </div>
             </div>
 
-            {/* Contact Section - Mobile */}
             <div id="contact-section" className="lg:hidden">
               {(hotel.phone_numbers?.length > 0 || hotel.email) && (
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-3">
                   <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Contact</h3>
                   {hotel.phone_numbers?.map((phone: string, idx: number) => (
                     <a key={idx} href={`tel:${phone}`} className="flex items-center gap-3 text-slate-600 hover:text-[#008080] transition-colors">
-                      <div className="p-2 rounded-lg bg-slate-50">
-                        <Phone className="h-4 w-4 text-[#008080]" />
-                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50"><Phone className="h-4 w-4 text-[#008080]" /></div>
                       <span className="text-xs font-bold uppercase tracking-tight">{phone}</span>
                     </a>
                   ))}
                   {hotel.email && (
                     <a href={`mailto:${hotel.email}`} className="flex items-center gap-3 text-slate-600 hover:text-[#008080] transition-colors">
-                      <div className="p-2 rounded-lg bg-slate-50">
-                        <Mail className="h-4 w-4 text-[#008080]" />
-                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50"><Mail className="h-4 w-4 text-[#008080]" /></div>
                       <span className="text-xs font-bold tracking-tight">{hotel.email}</span>
                     </a>
                   )}
@@ -517,7 +412,7 @@ const HotelDetail = () => {
             </div>
           </div>
 
-          {/* Desktop Sidebar */}
+          {/* Desktop sidebar */}
           <div className="hidden lg:block">
             <div className="sticky top-24 bg-white rounded-[40px] p-8 shadow-2xl border border-slate-100 space-y-6">
               <div className="text-center">
@@ -541,68 +436,29 @@ const HotelDetail = () => {
               <OperatingHoursInfo />
 
               {isAccommodationOnly && hotel.general_booking_link ? (
-                <ExternalBookingButton
-                  url={hotel.general_booking_link}
-                  className="w-full py-8 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl hover:scale-[1.02] transition-transform active:scale-95"
-                >
-                  Reserve Now
-                </ExternalBookingButton>
+                <ExternalBookingButton url={hotel.general_booking_link} className="w-full py-8 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl transition-all active:scale-95">Reserve Now</ExternalBookingButton>
               ) : (
-                <Button 
-                  onClick={() => navigate(`/booking/hotel/${hotel.id}`)}
-                  className="w-full py-8 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl hover:scale-[1.02] transition-transform active:scale-95"
-                >
-                  Reserve Now
-                </Button>
+                <Button onClick={() => navigate(`/booking/hotel/${hotel.id}`)} className="w-full py-8 rounded-3xl text-lg font-black uppercase tracking-widest bg-gradient-to-r from-[#FF7F50] to-[#FF4E50] border-none shadow-xl transition-all active:scale-95">Reserve Now</Button>
               )}
 
               <div className="grid grid-cols-3 gap-3">
-                <UtilityButton 
-                  icon={<Navigation className="h-5 w-5" />} 
-                  label="Map" 
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.location}`)}`, "_blank")} 
-                />
-                <UtilityButton 
-                  icon={<Copy className="h-5 w-5" />} 
-                  label="Copy" 
-                  onClick={async () => {
-                    const link = getShareLink(id!, "hotel", hotel.name, hotel.location);
-                    await navigator.clipboard.writeText(link);
-                    toast({ title: "Copied!" });
-                  }} 
-                />
-                <UtilityButton 
-                  icon={<Share2 className="h-5 w-5" />} 
-                  label="Share" 
-                  onClick={async () => {
-                    const link = getShareLink(id!, "hotel", hotel.name, hotel.location);
-                    if (navigator.share) {
-                      try { await navigator.share({ title: hotel.name, url: link }); } catch (e) {}
-                    } else {
-                      await navigator.clipboard.writeText(link);
-                      toast({ title: "Link Copied!" });
-                    }
-                  }} 
-                />
+                <UtilityButton icon={<Navigation className="h-5 w-5" />} label="Map" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.location}`)}`, "_blank")} />
+                <UtilityButton icon={<Copy className="h-5 w-5" />} label="Copy" onClick={async () => { const link = getShareLink(id!, "hotel", hotel.name, hotel.location); await navigator.clipboard.writeText(link); toast({ title: "Copied!" }); }} />
+                <UtilityButton icon={<Share2 className="h-5 w-5" />} label="Share" onClick={async () => { const link = getShareLink(id!, "hotel", hotel.name, hotel.location); if (navigator.share) { try { await navigator.share({ title: hotel.name, url: link }); } catch (e) {} } else { await navigator.clipboard.writeText(link); toast({ title: "Link Copied!" }); } }} />
               </div>
 
-              {/* Contact Section */}
               {(hotel.phone_numbers?.length > 0 || hotel.email) && (
                 <div className="space-y-3 pt-4 border-t border-slate-100">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</h3>
                   {hotel.phone_numbers?.map((phone: string, idx: number) => (
                     <a key={idx} href={`tel:${phone}`} className="flex items-center gap-3 text-slate-600 hover:text-[#008080] transition-colors">
-                      <div className="p-2 rounded-lg bg-slate-50">
-                        <Phone className="h-4 w-4 text-[#008080]" />
-                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50"><Phone className="h-4 w-4 text-[#008080]" /></div>
                       <span className="text-xs font-bold uppercase tracking-tight">{phone}</span>
                     </a>
                   ))}
                   {hotel.email && (
                     <a href={`mailto:${hotel.email}`} className="flex items-center gap-3 text-slate-600 hover:text-[#008080] transition-colors">
-                      <div className="p-2 rounded-lg bg-slate-50">
-                        <Mail className="h-4 w-4 text-[#008080]" />
-                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50"><Mail className="h-4 w-4 text-[#008080]" /></div>
                       <span className="text-xs font-bold tracking-tight">{hotel.email}</span>
                     </a>
                   )}
@@ -612,30 +468,19 @@ const HotelDetail = () => {
           </div>
         </div>
 
-        {/* Reviews - Hidden for accommodation only */}
         {!isAccommodationOnly && (
           <div className="mt-8">
             <ReviewSection itemId={hotel.id} itemType="hotel" />
           </div>
         )}
 
-        {/* Map Section - Hidden for accommodation only */}
         {!isAccommodationOnly && (
           <DetailMapSection
-            currentItem={{
-              id: hotel.id,
-              name: hotel.name,
-              latitude: hotel.latitude,
-              longitude: hotel.longitude,
-              location: hotel.location,
-              country: hotel.country,
-              image_url: hotel.image_url,
-            }}
+            currentItem={{ id: hotel.id, name: hotel.name, latitude: hotel.latitude, longitude: hotel.longitude, location: hotel.location, country: hotel.country, image_url: hotel.image_url }}
             itemType="hotel"
           />
         )}
 
-        {/* Similar Items */}
         <div className="mt-12">
           <h2 className="text-xl font-black uppercase tracking-tighter mb-6">Explore Similar Stays</h2>
           <SimilarItems currentItemId={hotel.id} itemType="hotel" country={hotel.country} />
@@ -646,7 +491,7 @@ const HotelDetail = () => {
   );
 };
 
-const UtilityButton = ({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick: () => void }) => (
+const UtilityButton = ({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) => (
   <Button variant="ghost" onClick={onClick} className="flex-col h-auto py-3 bg-slate-50 text-slate-500 rounded-2xl border border-slate-100 hover:bg-slate-100 transition-colors">
     <div className="mb-1">{icon}</div>
     <span className="text-[10px] font-black uppercase tracking-tighter">{label}</span>
