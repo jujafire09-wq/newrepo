@@ -76,9 +76,9 @@ const BookingPage = () => {
       if (type === "trip" || type === "event") {
         const result = await supabase
           .from("trips")
-          .select("id,name,location,place,country,image_url,date,is_custom_date,is_flexible_date,slot_limit_type,price,price_child,available_tickets,description,activities,phone_number,email,created_by,opening_hours,closing_hours,days_opened,type,approval_status,is_hidden,approval_status,is_hidden,approval_status,is_hidden")
+          .select("id,name,location,place,country,image_url,date,is_custom_date,is_flexible_date,slot_limit_type,price,price_child,available_tickets,description,activities,phone_number,email,created_by,opening_hours,closing_hours,days_opened,type,approval_status,is_hidden")
           .eq("id", id)
-          .single();
+          .maybeSingle();
         data = result.data;
         error = result.error;
       } else if (type === "adventure_place" || type === "adventure") {
