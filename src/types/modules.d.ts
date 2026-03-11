@@ -64,17 +64,11 @@ declare module '@capacitor/push-notifications' {
   export const PushNotifications: any;
 }
 declare module 'jspdf' {
-  export default class jsPDF {
+  class jsPDF {
     constructor(options?: any);
-    setFontSize(size: number): void;
-    setTextColor(...args: any[]): void;
-    text(text: string, x: number, y: number, options?: any): void;
-    getNumberOfPages(): number;
-    setPage(page: number): void;
-    save(filename: string): void;
-    internal: any;
-    addImage(...args: any[]): void;
+    [key: string]: any;
   }
+  export default jsPDF;
 }
 declare module 'jspdf-autotable' {
   export default function autoTable(doc: any, options: any): void;
