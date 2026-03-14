@@ -370,10 +370,13 @@ import { useSearchParams } from "react-router-dom";
                 }}
               >
                 <div 
-                  className="flex justify-between items-center cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer"
                   onClick={() => toggleFacility(facility)}
                 >
-                  <div>
+                  {facility.images?.[0] && (
+                    <img src={facility.images[0]} alt={facility.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
                     <p className="font-medium">{facility.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {formatPrice(facility.price)} per night
