@@ -395,6 +395,20 @@ const HotelDetail = () => {
               </div>
             </div>
 
+            <GeneralFacilitiesDisplay facilityIds={hotel.amenities || []} />
+
+            {hotel.facilities?.length > 0 && (
+              <div id="facilities-section">
+                <FacilitiesGrid facilities={hotel.facilities} itemId={hotel.id} itemType="hotel" accentColor="#008080" useExternalLink={isAccommodationOnly} />
+              </div>
+            )}
+
+            {hotel.activities?.length > 0 && (
+              <div id="activities-section">
+                <ActivitiesGrid activities={hotel.activities} itemId={hotel.id} itemType="hotel" accentColor="#FF7F50" />
+              </div>
+            )}
+
             <div id="contact-section" className="lg:hidden">
               {(hotel.phone_numbers?.length > 0 || hotel.email) && (
                 <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-3">
