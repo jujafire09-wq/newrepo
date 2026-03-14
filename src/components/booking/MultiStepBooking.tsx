@@ -676,7 +676,8 @@ import { useSearchParams } from "react-router-dom";
                             )}
                           </div>
                         </div>
-                   );
+                      </div>
+                    );
                  })}
                </div>
              </div>
