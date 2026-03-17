@@ -421,6 +421,7 @@ const QRScanner = () => {
     setVerifiedBooking(null);
     setVerificationStatus("idle");
     setCheckedIn(false);
+    setItemDetails(null);
   };
 
   if (authLoading) return <div className="min-h-screen bg-[#F8F9FA] animate-pulse" />;
