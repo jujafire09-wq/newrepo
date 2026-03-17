@@ -28,12 +28,12 @@ export const PaymentSuccessDialog = ({
   const children = bookingData?.children ?? details?.children ?? details?.num_children;
   const facilities = bookingData?.facilities ?? details?.facilities ?? details?.selectedFacilities ?? [];
   const activities = bookingData?.activities ?? details?.activities ?? details?.selectedActivities ?? [];
+  const computedPartySize = (adults ?? 0) + (children ?? 0);
   const slotsBooked =
     bookingData?.slotsBooked ??
     bookingData?.slots_booked ??
     details?.slots_booked ??
-    ((adults ?? 0) + (children ?? 0)) ||
-    undefined;
+    (computedPartySize > 0 ? computedPartySize : undefined);
 
   const pdfData: BookingPDFData | null = bookingData
     ? {
