@@ -119,6 +119,7 @@ export const SimilarItems = ({ currentItemId, itemType, location, country, tripT
       case "adventure": return "Similar Experiences";
       case "hotel": return "Stay Somewhere Similar";
       case "trip": return "Other Recommended Trips";
+      case "event": return "Other Recommended Events";
       default: return "You Might Also Like";
     }
   };
