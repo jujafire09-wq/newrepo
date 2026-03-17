@@ -89,6 +89,7 @@ const QRScanner = () => {
   const [verificationStatus, setVerificationStatus] = useState<"idle" | "verifying" | "valid" | "invalid" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [itemName, setItemName] = useState("");
+  const [itemDetails, setItemDetails] = useState<ItemData | null>(null);
   const [isOfflineScan, setIsOfflineScan] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
