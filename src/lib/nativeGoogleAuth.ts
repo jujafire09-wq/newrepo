@@ -18,14 +18,9 @@ export async function signInWithGoogleNative() {
     return null;
   }
 
-  // Native flow — access the plugin via Capacitor's plugin registry
-  // This avoids importing the npm package at build time (which breaks web builds)
-  const { Plugins } = await import('@capacitor/core');
-  const GoogleAuth = (Plugins as any).GoogleAuth;
-
-  if (!GoogleAuth) {
-    throw new Error('GoogleAuth plugin not available. Ensure @codetrix-studio/capacitor-google-auth is installed and synced.');
-  }
+  // Native flow — use registerPlugin to access the Capacitor plugin
+  // without importing the npm package (which breaks web builds)
+  const GoogleAuth: any = registerPlugin('GoogleAuth');
 
   try {
     await GoogleAuth.initialize({
