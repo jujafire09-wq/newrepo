@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Home, Ticket, Heart, Phone, Info, LogIn, LogOut, User, 
-  FileText, Shield, ChevronRight, Trophy, Map, Mountain, Bed, Building2, Globe 
+  FileText, Shield, ChevronRight, Trophy, Map, Mountain, Bed, Building2 
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Capacitor } from '@capacitor/core';
+import { Button } from "@/components/ui/button";
 
 interface NavigationDrawerProps {
   onClose: () => void;
@@ -83,23 +84,30 @@ export const NavigationDrawer = ({ onClose }: NavigationDrawerProps) => {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Brand Header */}
-      <div className="p-6 bg-white border-b border-slate-100">
-        <div className="flex items-center gap-4">
-          <div>
-            <span 
-              className="font-bold text-2xl tracking-tight leading-none block italic"
-              style={{
-                background: "linear-gradient(to right, #1a365d, #2b6cb0, #4fd1c5)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.1))"
-              }}
-            >
-              RealTravo
-            </span>
-          </div>
+      {/* Brand Header with custom CANCEL button */}
+      <div className="p-6 bg-white border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <span 
+            className="font-bold text-2xl tracking-tight leading-none block italic"
+            style={{
+              background: "linear-gradient(to right, #1a365d, #2b6cb0, #4fd1c5)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.1))"
+            }}
+          >
+            RealTravo
+          </span>
         </div>
+
+        {/* Custom Cancel Button */}
+        <Button 
+          variant="ghost" 
+          onClick={onClose}
+          className="h-8 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+        >
+          Cancel
+        </Button>
       </div>
 
       <nav className="flex-1 p-4 overflow-y-auto scrollbar-hide">
@@ -117,7 +125,7 @@ export const NavigationDrawer = ({ onClose }: NavigationDrawerProps) => {
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-700 truncate max-w-[140px]">
+                    <p className="text-xs font-bold text-slate-700 truncate max-w-[120px]">
                       {userName || t('drawer.traveler')}
                     </p>
                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
@@ -165,45 +173,36 @@ export const NavigationDrawer = ({ onClose }: NavigationDrawerProps) => {
           <NavItem icon={Info} label={t('drawer.about')} path="/about" />
           <NavItem icon={FileText} label={t('drawer.terms')} path="/terms-of-service" />
           <NavItem icon={Shield} label={t('drawer.privacy')} path="/privacy-policy" />
-          
         </ul>
 
-        {/* Currency & Language - shown in Capacitor (no footer) */}
         {isNative && (
-          <div className="mt-4 space-y-4 px-4">
+          <div className="mt-4 space-y-4 px-4 pb-4">
             <div className="h-px bg-slate-100" />
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('footer.currency', 'Currency')}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrency("KES")}
                 className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                  currency === "KES"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                  currency === "KES" ? "bg-[#008080] text-white" : "bg-slate-100 text-slate-500"
                 }`}
               >
-                KSh (KES)
+                KSh
               </button>
               <button
                 onClick={() => setCurrency("USD")}
                 className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                  currency === "USD"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                  currency === "USD" ? "bg-[#008080] text-white" : "bg-slate-100 text-slate-500"
                 }`}
               >
-                $ (USD)
+                USD
               </button>
             </div>
-            <p className="text-[9px] text-muted-foreground">
-              {rateLoading ? "Fetching rate..." : `1 USD = ${rate.toFixed(2)} KES`}
-            </p>
-
+            
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('footer.language', 'Language')}</p>
             <select
               value={language}
               onChange={(e) => handleLanguageChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-muted text-foreground text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold focus:outline-none cursor-pointer"
             >
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>{l.name}</option>
@@ -213,10 +212,9 @@ export const NavigationDrawer = ({ onClose }: NavigationDrawerProps) => {
         )}
       </nav>
       
-      {/* Footer & Transparency Note */}
       <div className="p-6 border-t border-slate-50 bg-slate-50/30">
         <p className="text-[10px] leading-relaxed text-slate-400 mb-4 text-center">
-          <span className="font-black text-slate-500">{t('drawer.transparency')}</span> {t('drawer.transparencyText')} <span className="text-[#008080] font-bold">{t('drawer.transparencyHighlight')}</span>.
+          <span className="font-black text-slate-500 uppercase tracking-tighter">{t('drawer.transparency')}</span> {t('drawer.transparencyText')} <span className="text-[#008080] font-bold">{t('drawer.transparencyHighlight')}</span>.
         </p>
         <div className="text-center">
           <span className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">
