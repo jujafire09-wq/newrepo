@@ -222,6 +222,9 @@ const App = () => {
                     <Route path="/trip-event-guide" element={<TripEventGuide />} />
                     <Route path="/campsite-guide" element={<CampsiteGuide />} />
                     <Route path="/hotel-guide" element={<HotelGuide />} />
+                    <Route path="/company-registration" element={<CompanyRegistration />} />
+                    <Route path="/company/:companyName" element={<CompanyPage />} />
+                    <Route path="/admin/companies" element={<CompanyReview />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
