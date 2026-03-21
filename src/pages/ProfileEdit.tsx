@@ -160,8 +160,27 @@ const ProfileEdit = () => {
       return;
     }
 
+    // Password validation
+    setPasswordError("");
+    if (newPassword) {
+      if (newPassword.length < 8) {
+        setPasswordError("Password must be at least 8 characters");
+        return;
+      }
+      if (newPassword !== confirmNewPassword) {
+        setPasswordError("Passwords don't match");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
+      // Update password if provided
+      if (newPassword) {
+        const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+        if (pwError) throw pwError;
+      }
+
       const { error } = await supabase.from("profiles").update({
         name: profileData.name,
         date_of_birth: profileData.date_of_birth || null,
