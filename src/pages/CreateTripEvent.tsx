@@ -216,7 +216,7 @@ const CreateTripEvent = () => {
       }]);
 
       if (error) throw error;
-      toast({ title: "Success!", description: `Ref: ${friendlySlug} — Submitted for approval.`, duration: 5000 });
+      toast({ title: "Success!", description: isCompanyHost ? `Ref: ${friendlySlug} — Auto-approved and live!` : `Ref: ${friendlySlug} — Submitted for approval.`, duration: 5000 });
       navigate("/become-host");
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
