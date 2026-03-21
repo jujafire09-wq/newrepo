@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, Mail, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { PasswordStrength } from "@/components/ui/password-strength";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { signInWithGoogleNative } from "@/lib/nativeGoogleAuth";
 
 const generateUserFriendlyId = (email: string): string => {
@@ -38,23 +37,16 @@ type FormErrors = {
   otp?: string;
 };
 
-type SignupStep = "form" | "verify";
-
 export const SignupForm = () => {
-  const [step, setStep] = useState<SignupStep>("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [gender, setGender] = useState<string>("");
-  const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [generatedUserId, setGeneratedUserId] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -94,9 +86,8 @@ export const SignupForm = () => {
         .single();
 
       const finalUserId = existingProfile ? generateUserFriendlyId(email + Math.random()) : friendlyUserId;
-      setGeneratedUserId(finalUserId);
 
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -107,59 +98,31 @@ export const SignupForm = () => {
 
       if (error) throw error;
 
-      await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
+      // Check if user already exists (Supabase returns a user with identities=[] for existing accounts)
+      if (data?.user && data.user.identities && data.user.identities.length === 0) {
+        setErrors({ email: "An account with this email already exists. Please log in instead." });
+        toast({
+          title: "Account already exists",
+          description: "This email is already registered. Please log in instead.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
-      setStep("verify");
+      toast({ title: "Account created!", description: "Please check your email to verify your account, then log in." });
+      navigate("/auth");
     } catch (error: any) {
-      setErrors({ email: error.message });
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      const msg = error.message?.toLowerCase() || "";
+      if (msg.includes("already registered") || msg.includes("already been registered")) {
+        setErrors({ email: "An account with this email already exists. Please log in instead." });
+        toast({ title: "Account exists", description: "Please log in instead.", variant: "destructive" });
+      } else {
+        setErrors({ email: error.message });
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (codeToVerify?: string) => {
-    const code = codeToVerify || otp;
-    if (code.length !== 6) {
-      setErrors({ otp: "Please enter the complete 6-digit code" });
-      return;
-    }
-
-    setVerifying(true);
-    setErrors({});
-
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: code,
-        type: "email",
-      });
-      if (error) throw error;
-      navigate("/");
-    } catch (error: any) {
-      setErrors({ otp: error.message || "Invalid verification code" });
-      toast({ title: "Verification failed", description: error.message || "Invalid code", variant: "destructive" });
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    setResending(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
-      if (error) throw error;
-      toast({ title: "Code resent", description: "Check your email for the new code." });
-    } catch (error: any) {
-      toast({ title: "Failed to resend", description: error.message, variant: "destructive" });
-    } finally {
-      setResending(false);
     }
   };
 
@@ -176,78 +139,6 @@ export const SignupForm = () => {
       setLoading(false);
     }
   };
-
-  // OTP Verification step
-  if (step === "verify") {
-    return (
-      <div className="space-y-8">
-        <div className="text-center space-y-3">
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Mail className="h-7 w-7 text-primary" />
-          </div>
-          <h3 className="text-lg font-bold text-foreground">Check your email</h3>
-          <p className="text-sm text-muted-foreground">
-            We sent a 6-digit code to <strong className="text-foreground">{email}</strong>
-          </p>
-          {generatedUserId && (
-            <p className="text-xs font-mono text-primary bg-primary/5 py-2 px-3 rounded-lg inline-block">
-              Your ID: {generatedUserId}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-5">
-          <div className="flex justify-center">
-            <InputOTP
-              maxLength={6}
-              value={otp}
-              onChange={(value) => {
-                setOtp(value);
-                if (value.length === 6) {
-                  setTimeout(() => handleVerifyOtp(value), 100);
-                }
-              }}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-
-          {errors.otp && (
-            <p className="text-xs text-destructive text-center">{errors.otp}</p>
-          )}
-
-          {verifying && (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Verifying...
-            </div>
-          )}
-
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">Didn't receive the code?</p>
-            <Button variant="link" onClick={handleResendCode} disabled={resending} className="text-sm p-0 h-auto">
-              {resending ? "Sending..." : "Resend code"}
-            </Button>
-          </div>
-
-          <button
-            onClick={() => setStep("form")}
-            className="flex items-center justify-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to signup
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
